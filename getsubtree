@@ -6,11 +6,10 @@ from pyaci import filters
 import argparse
 import sys
   
-apic = Node('https://13.91.120.172', aciMetaFilePath="/root/scripts/aci-meta.json")
-apic.methods.Login('admin', 'C15co123456!').POST()
-
 parser = argparse.ArgumentParser("getsubtree")
 parser.add_argument('--dn', help='dn to retrive', default=None)
+parser.add_argument('--passw', help='cloud APIC password', default=None)
+parser.add_argument('--ip', help='cloud APIC IP', default=None)
 parser.add_argument('--configonly', help='config only parameters', action='store_true', default=False)
 extraParams = {}
 args = parser.parse_args()
@@ -18,8 +17,17 @@ mandatoryMissing = False
 if args.dn == None:
     mandatoryMissing = True
     print("Please provider --dn <dn>")
+if args.ip == None:
+    mandatoryMissing = True
+    print("Please insert ip address of cloud APIC --ip <cloudIP>")
+if args.passw == None:
+    mandatoryMissing = True
+    print("please insert password of cloud APIC --passw <password>")
 if mandatoryMissing:
     sys.exit(-1)
+
+apic = Node('https://{}'.format(args.ip), aciMetaFilePath="/root/scripts/aci-meta.json")
+apic.methods.Login('admin', args.passw).POST()
 
 mos = []
 if args.configonly:

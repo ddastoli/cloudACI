@@ -6,9 +6,6 @@ from pyaci import filters
 import argparse
 import sys
   
-apic = Node('https://13.91.120.172', aciMetaFilePath="/root/scripts/aci-meta.json")
-apic.methods.Login('admin', 'C15co123456!').POST()
-
 parser = argparse.ArgumentParser("Reconcile VNET/ResourceGroup with CAPIC")
 parser.add_argument('--vnet', help='vnet to reconcile', default=None)
 parser.add_argument('--rg', help='resource group to reconcile', default=None)
@@ -21,6 +18,8 @@ parser.add_argument('--subID', help='subscriptionID', default=None)
 parser.add_argument('--appID', help='applicationID', default=None)
 parser.add_argument('--adID', help='active directory ID', default=None)
 parser.add_argument('--secret', help='client secret', default=None)
+parser.add_argument('--passw', help='cloud APIC password', default=None)
+parser.add_argument('--ip', help='cloud APIC IP', default=None)
 extraParams = {}
 args = parser.parse_args()
 mandatoryMissing = False
@@ -54,8 +53,17 @@ if args.region == None:
 if args.cidr == None:
     mandatoryMissing = True
     print("Please provider --cidr <cidr>")
+if args.ip == None:
+    mandatoryMissing = True
+    print("Please insert ip address of cloud APIC --ip <cloudIP>")
+if args.passw == None:
+    mandatoryMissing = True
+    print("please insert password of cloud APIC --passw <password>")
 if mandatoryMissing:
     sys.exit(-1)
+
+apic = Node('https://{}'.format(args.ip), aciMetaFilePath="/root/scripts/aci-meta.json")
+apic.methods.Login('admin', args.passw).POST()
 
 mit = apic.mit
 fvTenant = mit.polUni().fvTenant(name=args.tenant)
