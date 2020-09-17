@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+
+from pyaci import Node
+from pyaci import options
+from pyaci import filters
+import argparse
+import sys
+  
+apic = Node('https://13.91.120.172', aciMetaFilePath="/root/scripts/aci-meta.json")
+apic.methods.Login('admin', 'C15co123456!').POST()
+
+parser = argparse.ArgumentParser("getsubtree")
+parser.add_argument('--dn', help='dn to retrive', default=None)
+parser.add_argument('--configonly', help='config only parameters', action='store_true', default=False)
+extraParams = {}
+args = parser.parse_args()
+mandatoryMissing = False
+if args.dn == None:
+    mandatoryMissing = True
+    print("Please provider --dn <dn>")
+if mandatoryMissing:
+    sys.exit(-1)
+
+mos = []
+if args.configonly:
+    mos = apic.mit.FromDn(args.dn).GET(**{'rsp-subtree': 'full',
+                                          'rsp-prop-include': 'config-only'})
+else:
+    mos = apic.mit.FromDn(args.dn).GET(**{'rsp-subtree': 'full'})
+for mo in mos:
+    print(mo.Xml)
