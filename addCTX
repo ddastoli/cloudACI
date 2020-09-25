@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+
+from pyaci import Node
+from pyaci import options
+from pyaci import filters
+import argparse
+import sys
+  
+parser = argparse.ArgumentParser("Reconcile VNET/ResourceGroup with CAPIC")
+parser.add_argument('--vnet', help='vnet to reconcile', default=None)
+parser.add_argument('--rg', help='resource group to reconcile', default=None)
+parser.add_argument('--tenant', help='tenant to create', default=None)
+parser.add_argument('--vrf', help='VRF in the tenant', default=None)
+parser.add_argument('--region', help='Deployment region', default=None)
+parser.add_argument('--cidr', help='CIDR', default=None)
+parser.add_argument('-r', '--run', help='Run', action='store_true', default=False)
+parser.add_argument('--subID', help='subscriptionID', default=None)
+parser.add_argument('--appID', help='applicationID', default=None)
+parser.add_argument('--adID', help='active directory ID', default=None)
+parser.add_argument('--secret', help='client secret', default=None)
+parser.add_argument('--passw', help='cloud APIC password', default=None)
+parser.add_argument('--ip', help='cloud APIC IP', default=None)
+extraParams = {}
+args = parser.parse_args()
+mandatoryMissing = False
+if args.subID == None:
+    mandatoryMissing = True
+    print("Please provider --subID <subscription ID>")
+if args.appID == None:
+    mandatoryMissing = True
+    print("Please provider --appID <application ID>")
+if args.adID == None:
+    mandatoryMissing = True
+    print("Please provider --adID <active directory ID>")
+if args.secret == None:
+    mandatoryMissing = True
+    print("Please provider --secret <client secret ID>")
+if args.vnet == None:
+    mandatoryMissing = True
+    print("Please provider --vnet <vnet name>")
+if args.rg == None:
+    mandatoryMissing = True
+    print("Please provider --rg <resource group name>")
+if args.tenant == None:
+    mandatoryMissing = True
+    print("Please provider --tenant <tenant>")
+if args.vrf == None:
+    mandatoryMissing = True
+    print("Please provider --vrf <vrf>")
+if args.region == None:
+    mandatoryMissing = True
+    print("Please provider --region <region>")
+if args.cidr == None:
+    mandatoryMissing = True
+    print("Please provider --cidr <cidr>")
+if args.ip == None:
+    mandatoryMissing = True
+    print("Please insert ip address of cloud APIC --ip <cloudIP>")
+if args.passw == None:
+    mandatoryMissing = True
+    print("please insert password of cloud APIC --passw <password>")
+if mandatoryMissing:
+    sys.exit(-1)
+
+apic = Node('https://{}'.format(args.ip), aciMetaFilePath="/root/scripts/aci-meta.json")
+apic.methods.Login('admin', args.passw).POST()
+
+mit = apic.mit
+fvTenant = mit.polUni().fvTenant(name=args.tenant)
+fvCtx = fvTenant.fvCtx(name=args.vrf)
+#cloudCredentials = fvTenant.cloudCredentials(keyId=args.appID, name='cAPICUIDefault')
+#cloudCredentials.cloudRsAD(annotation='', tDn='uni/tn-{}/ad-{}'.format(args.tenant,args.adID))
+#fvTenant.fvRsCloudAccount(tDn='uni/tn-{}/act-[{}]-vendor-azure'.format(args.tenant,args.subID))
+cloudCtxProfile = fvTenant.cloudCtxProfile(azResourceGroup=args.rg, azVirtualNetwork=args.vnet, name="{}-{}".format(args.vrf, args.region))
+#cloudAccount = fvTenant.cloudAccount(accessType='credentials', id=args.subID, vendor='azure')
+#cloudAccount.cloudRsCredentials(tDn='uni/tn-{}/credentials-cAPICUIDefault'.format(args.tenant))
+#fvTenant.cloudAD(annotation='', id=args.adID, name='cAPICUIDefault')
+cloudCtxProfile.cloudRsToCtx(tnFvCtxName=args.vrf)
+cloudCtxProfile.cloudRsCtxProfileToRegion(tDn='uni/clouddomp/provp-azure/region-{}'.format(args.region))
+cloudCtxProfile.cloudCidr(addr=args.cidr, primary='yes')
+
+if args.run:
+    mit.POST(format='xml')
+else:
+    print(mit.Xml)
