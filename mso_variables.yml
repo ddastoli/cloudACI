@@ -1,0 +1,47 @@
+mso_host: '173.36.219.157'
+mso_user: 'admin'
+mso_password: 'Ins3965!3965'
+AWS_site: AWS-CloudSite
+Azure_site: Azure-CloudSite
+onprem_site: OnPremises-ACI
+cloud_sites:
+  - AWS-CloudSite
+  - Azure-CloudSite
+onprem_sites:
+  - OnPremises-ACI
+all_sites:
+  - AWS-CloudSite
+  - Azure-CloudSite
+  - OnPremises-ACI
+
+cidr_aws: 10.0.0.0/16
+cidr_azure: 11.0.0.0/16
+
+subnetsAWS:
+  - cidr: 10.0.0.0/16
+    subnet: 10.0.1.0/24
+    zone: eu-west-2a
+  - cidr: 10.0.0.0/16
+    subnet: 10.0.2.0/24
+    zone: eu-west-2b
+  - cidr: 10.0.0.0/16
+    subnet: 10.0.3.0/24
+    zone: eu-west-2a
+  - cidr: 10.0.0.0/16
+    subnet: 10.0.4.0/24
+    zone: eu-west-2b
+  
+
+subnetsAzure:
+  - cidr: 11.0.0.0/16
+    subnet: 11.0.1.0/24
+    zone: francecentral
+  - cidr: 11.0.0.0/16
+    subnet: 11.0.2.0/24
+    zone: francecentral
+  - cidr: 11.0.0.0/16
+    subnet: 11.0.3.0/24
+    zone: francecentral
+  - cidr: 11.0.0.0/16
+    subnet: 11.0.4.0/24
+    zone: francecentral

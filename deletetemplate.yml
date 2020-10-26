@@ -1,0 +1,85 @@
+-
+  name: create mso schema
+  hosts: localhost
+  tasks:
+    - include_vars: mso_variables.yml
+
+    - name: remove on-prem template from on-prem sites
+      cisco.mso.mso_schema_site:
+        host: '{{ mso_host }}'
+        username: '{{ mso_user }}'
+        password: '{{ mso_password }}'
+        schema: hybrid application
+        template: on-prem
+        state: absent
+        site: 'OnPremises-ACI'
+        validate_certs: no        
+      delegate_to: localhost
+      
+    - name: remove on-prem template
+      cisco.mso.mso_schema_template:
+        host: '{{ mso_host }}'
+        username: '{{ mso_user }}'
+        password: '{{ mso_password }}'
+        tenant: domenico
+        schema: hybrid application
+        template: on-prem
+        state: absent
+        validate_certs: no        
+      delegate_to: localhost
+
+    - name: remove cloud template from cloud sites
+      cisco.mso.mso_schema_site:
+        host: '{{ mso_host }}'
+        username: '{{ mso_user }}'
+        password: '{{ mso_password }}'
+        schema: hybrid application
+        template: cloud
+        state: absent
+        site: '{{ item }}'
+        validate_certs: no        
+      delegate_to: localhost
+      loop: '{{ cloud_sites }}'
+
+    - name: remove cloud template
+      cisco.mso.mso_schema_template:
+        host: '{{ mso_host }}'
+        username: '{{ mso_user }}'
+        password: '{{ mso_password }}'
+        tenant: domenico
+        schema: hybrid application
+        template: cloud
+        state: absent
+        validate_certs: no        
+      delegate_to: localhost
+
+
+    - name: remove hybrid template from all sites
+      cisco.mso.mso_schema_site:
+        host: '{{ mso_host }}'
+        username: '{{ mso_user }}'
+        password: '{{ mso_password }}'
+        schema: hybrid application
+        template: hybrid
+        state: absent
+        site: '{{ item }}'
+        validate_certs: no        
+      delegate_to: localhost
+      loop: '{{ all_sites }}'
+
+    - name: remove hybrid template
+      cisco.mso.mso_schema_template:
+        host: '{{ mso_host }}'
+        username: '{{ mso_user }}'
+        password: '{{ mso_password }}'
+        tenant: domenico
+        schema: hybrid application
+        template: hybrid
+        state: absent
+        validate_certs: no        
+      delegate_to: localhost
+
+
+
+
+
