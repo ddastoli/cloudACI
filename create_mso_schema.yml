@@ -78,7 +78,7 @@
         template: hybrid
         vrf: VRF1
         state: present
-        site: AWS-CloudSite
+        site: '{{ AWS_site }}'
         region: eu-west-2
         cidr: '{{ cidr_aws }}'
         primary: true
@@ -114,6 +114,33 @@
         state: present
       register: nm_add_hub_network
 
+    - name: Add a new subnet to AWS CIDR in VRF1 at site level
+      cisco.mso.mso_schema_site_vrf_region_cidr_subnet:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        site: '{{AWS_site}}'
+        vrf: VRF1
+        region: eu-west-2
+        cidr: '{{item.cidr}}'
+        subnet: '{{ item.subnet }}'
+        zone: '{{ item.zone }}'
+        hub_network: true
+        state: present
+      loop: '{{ subnetsAWStgw }}'  
+      delegate_to: localhost
+
+    - name: Remove VPN Gateway Router at Region for AWS
+      cisco.mso.mso_schema_site_vrf_region:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        site: '{{ AWS_site }}'
+        vrf: VRF1
+        region: eu-west-2
+        vpn_gateway_router: false
+        state: present
+
     - name: Add a new site VRF CIDR to Azure
       cisco.mso.mso_schema_site_vrf_region_cidr:
         <<: *mso_info
@@ -128,6 +155,19 @@
       delegate_to: localhost
       register: cm_add_cidr
 
+    - name: Add hub network in VRF1 region francecentral at Azure site level
+      cisco.mso.mso_schema_site_vrf_region_hub_network:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        site: '{{Azure_site}}'
+        vrf: VRF1
+        region: francecentral
+        hub_network:
+          name: default
+          tenant: infra
+        state: present
+
     - name: Add a new site VRF region CIDR subnet for Azure
       cisco.mso.mso_schema_site_vrf_region_cidr_subnet:
         <<: *mso_info
@@ -141,6 +181,17 @@
         region: '{{ item.zone }}'
       delegate_to: localhost
       loop: '{{ subnetsAzure }}'          
+
+    - name: Remove VPN Gateway Router at Region for Azure
+      cisco.mso.mso_schema_site_vrf_region:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        site: '{{ Azure_site }}'
+        vrf: VRF1
+        region: francecentral
+        vpn_gateway_router: false
+        state: present
 
 
     - name: Add hybrid template to all sites
@@ -192,7 +243,7 @@
     
 
     - name: Add EPG to cloud ANP
-      mso_schema_template_anp_epg: &epg_present
+      mso_schema_template_anp_epg:
         <<: *mso_info
         schema: hybrid application
         template: cloud
@@ -204,7 +255,7 @@
         state: present
 
     - name: Add EPG to cloud ANP
-      mso_schema_template_anp_epg: &epg_present
+      mso_schema_template_anp_epg:
         <<: *mso_info
         schema: hybrid application
         template: cloud
@@ -281,7 +332,7 @@
 
     # ADD Contract to EPG
     - name: Add Contract1 to EPG web
-      cisco.mso.mso_schema_template_anp_epg_contract: &contract_epg_present
+      cisco.mso.mso_schema_template_anp_epg_contract:
         <<: *mso_info
         schema: hybrid application
         template: cloud
@@ -296,7 +347,7 @@
         - 'provider'
 
     - name: Add Contract1 to EPG db
-      cisco.mso.mso_schema_template_anp_epg_contract: &contract_epg_present
+      cisco.mso.mso_schema_template_anp_epg_contract: 
         <<: *mso_info
         schema: hybrid application
         template: cloud
@@ -313,7 +364,7 @@
 
     # ADD Contract to External EPG
     - name: Add Contract1 to External EPG
-      cisco.mso.mso_schema_template_external_epg_contract: &contract_ext_epg_present
+      cisco.mso.mso_schema_template_external_epg_contract:
         <<: *mso_info
         schema: hybrid application
         template: cloud
