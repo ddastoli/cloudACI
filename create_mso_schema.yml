@@ -67,7 +67,7 @@
         <<: *mso_info
         schema: hybrid application
         template: hybrid
-        vrf: VRF1
+        vrf: tfvrf1
         state: present
       delegate_to: localhost
 
@@ -76,7 +76,7 @@
         <<: *mso_info
         schema: hybrid application
         template: hybrid
-        vrf: VRF1
+        vrf: tfvrf1
         state: present
         site: '{{ AWS_site }}'
         region: eu-west-2
@@ -91,7 +91,7 @@
         schema: hybrid application
         template: hybrid
         site: '{{ AWS_site }}'
-        vrf: VRF1
+        vrf: tfvrf1
         region: eu-west-2
         cidr: '{{ item.cidr }}'
         subnet: '{{ item.subnet }}'
@@ -100,13 +100,13 @@
       delegate_to: localhost
       loop: '{{ subnetsAWS }}' 
 
-    - name: Add hub network again in VRF1 region eu-west-2 at AWS site level
+    - name: Add hub network again in tfvrf1 region eu-west-2 at AWS site level
       mso_schema_site_vrf_region_hub_network:
         <<: *mso_info
         schema: hybrid application
         template: hybrid
         site: '{{ AWS_site }}'
-        vrf: VRF1
+        vrf: tfvrf1
         region: eu-west-2
         hub_network:
             name: tgw-hub1
@@ -114,13 +114,13 @@
         state: present
       register: nm_add_hub_network
 
-    - name: Add a new subnet to AWS CIDR in VRF1 at site level
+    - name: Add a new subnet to AWS CIDR in tfvrf1 at site level
       cisco.mso.mso_schema_site_vrf_region_cidr_subnet:
         <<: *mso_info
         schema: hybrid application
         template: hybrid
         site: '{{AWS_site}}'
-        vrf: VRF1
+        vrf: tfvrf1
         region: eu-west-2
         cidr: '{{item.cidr}}'
         subnet: '{{ item.subnet }}'
@@ -136,7 +136,7 @@
         schema: hybrid application
         template: hybrid
         site: '{{ AWS_site }}'
-        vrf: VRF1
+        vrf: tfvrf1
         region: eu-west-2
         vpn_gateway_router: false
         state: present
@@ -146,7 +146,7 @@
         <<: *mso_info
         schema: hybrid application
         template: hybrid
-        vrf: VRF1
+        vrf: tfvrf1
         state: present
         site: '{{ Azure_site }}'
         region: francecentral
@@ -155,13 +155,13 @@
       delegate_to: localhost
       register: cm_add_cidr
 
-    - name: Add hub network in VRF1 region francecentral at Azure site level
+    - name: Add hub network in tfvrf1 region francecentral at Azure site level
       cisco.mso.mso_schema_site_vrf_region_hub_network:
         <<: *mso_info
         schema: hybrid application
         template: hybrid
         site: '{{Azure_site}}'
-        vrf: VRF1
+        vrf: tfvrf1
         region: francecentral
         hub_network:
           name: default
@@ -174,7 +174,7 @@
         schema: hybrid application
         template: hybrid
         site: '{{ Azure_site }}'
-        vrf: VRF1
+        vrf: tfvrf1
         cidr: '{{ item.cidr }}'
         subnet: '{{ item.subnet }}'
         state: present
@@ -188,7 +188,7 @@
         schema: hybrid application
         template: hybrid
         site: '{{ Azure_site }}'
-        vrf: VRF1
+        vrf: tfvrf1
         region: francecentral
         vpn_gateway_router: false
         state: present
@@ -250,7 +250,7 @@
         anp: cloudAP
         epg: web
         vrf:
-          name: VRF1
+          name: tfvrf1
           template: hybrid
         state: present
 
@@ -262,7 +262,7 @@
         anp: cloudAP
         epg: db
         vrf:
-          name: VRF1
+          name: tfvrf1
           template: hybrid
         state: present
 
@@ -283,7 +283,7 @@
         state: present
 
 
-    - name: Add a selector to Azure external EPG
+    - name: Add a selector to AWS external EPG
       cisco.mso.mso_schema_site_external_epg_selector:
         <<: *mso_info
         schema: hybrid application
@@ -298,16 +298,6 @@
         state: present
 
 
-    - name: Ensure L3out exist
-      mso_schema_template_l3out:
-        <<: *mso_info
-        schema: hybrid application
-        template: cloud
-        l3out: L3out
-        vrf:
-          name: VRF1
-          template: hybrid
-        state: present
 
 
     # ADD external EPG
@@ -317,15 +307,13 @@
         schema: hybrid application
         template: cloud
         external_epg: internet
+        type: cloud
         anp: 
           name: cloudAP
           template: cloud
         vrf:
-          name: VRF1
+          name: tfvrf1
           template: hybrid
-        l3out:
-          name: L3out
-          template: cloud
         state: present
 
 
@@ -410,3 +398,4 @@
         state: present
       delegate_to: localhost
       loop: '{{ cloud_sites }}'
+
