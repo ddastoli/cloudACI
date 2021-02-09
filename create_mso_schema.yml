@@ -16,7 +16,7 @@
     - name: Add cloud template
       cisco.mso.mso_schema_template:
         <<: *mso_info
-        tenant: domenico
+        tenant: hybrid_dom
         schema: hybrid application
         template: cloud
         state: present
@@ -36,7 +36,7 @@
     - name: Add on-prem template
       cisco.mso.mso_schema_template:
         <<: *mso_info
-        tenant: domenico
+        tenant: hybrid_dom
         schema: hybrid application
         template: on-prem
         state: present
@@ -55,7 +55,7 @@
     - name: Add hybrid template
       cisco.mso.mso_schema_template:
         <<: *mso_info
-        tenant: domenico
+        tenant: hybrid_dom
         schema: hybrid application
         template: hybrid
         state: present
@@ -301,21 +301,20 @@
 
 
     # ADD external EPG
-    - name: Add external EPG cloud
-      cisco.mso.mso_schema_template_external_epg:
-        <<: *mso_info
-        schema: hybrid application
-        template: cloud
-        external_epg: internet
-        type: cloud
-        anp: 
-          name: cloudAP
-          template: cloud
-        vrf:
-          name: tfvrf1
-          template: hybrid
-        state: present
-
+#    - name: Add external EPG cloud
+#      cisco.mso.mso_schema_template_external_epg:
+#        <<: *mso_info
+#        schema: hybrid application
+#        template: cloud
+#        external_epg: internet
+#        type: cloud
+#        anp: 
+#          name: cloudAP
+#          template: cloud
+#        vrf:
+#          name: tfvrf1
+#          template: hybrid
+#        state: present
 
 
     # ADD Contract to EPG
@@ -348,54 +347,3 @@
       loop:
         - 'consumer'
         - 'provider'
-
-
-    # ADD Contract to External EPG
-    - name: Add Contract1 to External EPG
-      cisco.mso.mso_schema_template_external_epg_contract:
-        <<: *mso_info
-        schema: hybrid application
-        template: cloud
-        external_epg: internet
-        contract:
-          name: Contract1
-          type: '{{ item }}'
-        state: present
-      loop:
-        - 'consumer'
-        - 'provider'
-    
-    - name: Add Selector to EPG web
-      cisco.mso.mso_schema_site_anp_epg_selector:
-        <<: *mso_info
-        schema: hybrid application
-        template: cloud
-        anp: cloudAP
-        epg: web
-        site: '{{item}}'
-        selector: web
-        expressions:
-          - type: application
-            operator: equals
-            value: web
-        state: present
-      delegate_to: localhost
-      loop: '{{ cloud_sites }}'
-
-    - name: Add Selector to EPG db
-      cisco.mso.mso_schema_site_anp_epg_selector:
-        <<: *mso_info
-        schema: hybrid application
-        template: cloud
-        anp: cloudAP
-        epg: db
-        site: '{{item}}'
-        selector: db
-        expressions:
-          - type: application
-            operator: equals
-            value: db
-        state: present
-      delegate_to: localhost
-      loop: '{{ cloud_sites }}'
-
