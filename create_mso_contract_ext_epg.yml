@@ -1,0 +1,63 @@
+-
+  name: create mso schema
+  hosts: localhost
+  tasks:
+    - include_vars: mso_variables.yml
+
+    - name: Set vars
+      set_fact: 
+        mso_info: &mso_info
+          host: '{{ mso_host }}'
+          username: '{{ mso_user }}'
+          password: '{{ mso_password }}'
+          validate_certs: no
+
+
+    # ADD Contract to External EPG
+    - name: Add Contract1 to External EPG
+      cisco.mso.mso_schema_template_external_epg_contract:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        external_epg: internet
+        contract:
+          name: Contract1
+          type: '{{ item }}'
+        state: present
+      loop:
+        - 'consumer'
+        - 'provider'
+    
+    - name: Add Selector to EPG web
+      cisco.mso.mso_schema_site_anp_epg_selector:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        anp: cloudAP
+        epg: web
+        site: '{{item}}'
+        selector: web
+        expressions:
+          - type: application
+            operator: equals
+            value: web
+        state: present
+      delegate_to: localhost
+      loop: '{{ cloud_sites }}'
+
+    - name: Add Selector to EPG db
+      cisco.mso.mso_schema_site_anp_epg_selector:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        anp: cloudAP
+        epg: db
+        site: '{{item}}'
+        selector: db
+        expressions:
+          - type: application
+            operator: equals
+            value: db
+        state: present
+      delegate_to: localhost
+      loop: '{{ cloud_sites }}'
