@@ -1,6 +1,6 @@
-mso_host: '173.36.219.157'
-mso_user: 'admin'
-mso_password: 'Ins3965!3965'
+mso_host: 'xxx'
+mso_user: 'xxx'
+mso_password: 'xxx'
 AWS_site: AWS
 Azure_site: Azure
 onprem_site: ACI-onprem
