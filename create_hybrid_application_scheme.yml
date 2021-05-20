@@ -1,0 +1,460 @@
+-
+  name: create mso schema
+  hosts: localhost
+  tasks:
+    - include_vars: mso_variables.yml
+
+    - name: Set vars
+      set_fact:
+        mso_info: &mso_info
+          host: '{{ mso_host }}'
+          username: '{{ mso_user }}'
+          password: '{{ mso_password }}'
+          validate_certs: no
+
+
+    - name: Add cloud template
+      cisco.mso.mso_schema_template:
+        <<: *mso_info
+        tenant: hybrid_tenant
+        schema: hybrid application
+        template: cloud
+        state: present
+      delegate_to: localhost
+
+
+    - name: Add cloud template to cloud sites
+      cisco.mso.mso_schema_site:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        state: present
+        site: '{{ item }}'
+      delegate_to: localhost
+      loop: '{{ cloud_sites }}'
+
+    - name: Add on-prem template
+      cisco.mso.mso_schema_template:
+        <<: *mso_info
+        tenant: hybrid_tenant
+        schema: hybrid application
+        template: on-prem
+        state: present
+      delegate_to: localhost
+
+    - name: Add on-prem template to on-prem sites
+      cisco.mso.mso_schema_site:
+        <<: *mso_info
+        schema: hybrid application
+        template: on-prem
+        state: present
+        site: '{{ item }}'
+      delegate_to: localhost
+      loop: '{{ onprem_sites }}'
+
+    - name: Add hybrid template
+      cisco.mso.mso_schema_template:
+        <<: *mso_info
+        tenant: hybrid_tenant
+        schema: hybrid application
+        template: hybrid
+        state: present
+      delegate_to: localhost
+
+
+    - name: Add a new VRF to hybrid template
+      cisco.mso.mso_schema_template_vrf:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        vrf: tfvrf1
+        state: present
+      delegate_to: localhost
+
+    - name: Add a new site VRF CIDR to AWS
+      cisco.mso.mso_schema_site_vrf_region_cidr:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        vrf: tfvrf1
+        state: present
+        site: '{{ AWS_site }}'
+        region: eu-central-1
+        cidr: '{{ cidr_aws }}'
+        primary: true
+      delegate_to: localhost
+      register: cm_add_cidr
+
+    - name: Add a new site VRF region CIDR subnet for AWS
+      cisco.mso.mso_schema_site_vrf_region_cidr_subnet:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        site: '{{ AWS_site }}'
+        vrf: tfvrf1
+        region: eu-central-1
+        cidr: '{{ item.cidr }}'
+        subnet: '{{ item.subnet }}'
+        zone: '{{ item.zone }}'
+        state: present
+      delegate_to: localhost
+      loop: '{{ subnetsAWS }}'
+
+    - name: Add hub network again in tfvrf1 region eu-west-2 at AWS site level
+      cisco.mso.mso_schema_site_vrf_region_hub_network:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        site: '{{ AWS_site }}'
+        vrf: tfvrf1
+        region: eu-central-1
+        hub_network:
+            name: tgw-hub1
+            tenant: infra
+        state: present
+      register: nm_add_hub_network
+
+    - name: Add a new subnet to AWS CIDR in tfvrf1 at site level
+      cisco.mso.mso_schema_site_vrf_region_cidr_subnet:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        site: '{{AWS_site}}'
+        vrf: tfvrf1
+        region: eu-central-1
+        cidr: '{{item.cidr}}'
+        subnet: '{{ item.subnet }}'
+        zone: '{{ item.zone }}'
+        hub_network: true
+        state: present
+      loop: '{{ subnetsAWStgw }}'
+      delegate_to: localhost
+
+    - name: Remove VPN Gateway Router at Region for AWS
+      cisco.mso.mso_schema_site_vrf_region:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        site: '{{ AWS_site }}'
+        vrf: tfvrf1
+        region: eu-central-1
+        vpn_gateway_router: false
+        state: present
+
+    - name: Add a new site VRF CIDR to Azure
+      cisco.mso.mso_schema_site_vrf_region_cidr:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        vrf: tfvrf1
+        state: present
+        site: '{{ Azure_site }}'
+        region: westeurope
+        cidr: '{{ cidr_azure }}'
+        primary: true
+      delegate_to: localhost
+      register: cm_add_cidr
+
+    - name: Add hub network in tfvrf1 region francecentral at Azure site level
+      cisco.mso.mso_schema_site_vrf_region_hub_network:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        site: '{{Azure_site}}'
+        vrf: tfvrf1
+        region: westeurope
+        hub_network:
+          name: default
+          tenant: infra
+        state: present
+
+    - name: Add a new site VRF region CIDR subnet for Azure
+      cisco.mso.mso_schema_site_vrf_region_cidr_subnet:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        site: '{{ Azure_site }}'
+        vrf: tfvrf1
+        cidr: '{{ item.cidr }}'
+        subnet: '{{ item.subnet }}'
+        state: present
+        region: '{{ item.zone }}'
+      delegate_to: localhost
+      loop: '{{ subnetsAzure }}'
+
+    - name: Remove VPN Gateway Router at Region for Azure
+      cisco.mso.mso_schema_site_vrf_region:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        site: '{{ Azure_site }}'
+        vrf: tfvrf1
+        region: westeurope
+        vpn_gateway_router: false
+        state: present
+
+
+    - name: Add hybrid template to all sites
+      cisco.mso.mso_schema_site:
+        <<: *mso_info
+        schema: hybrid application
+        template: hybrid
+        state: present
+        site: '{{ item }}'
+      delegate_to: localhost
+      loop: '{{ all_sites }}'
+
+
+    - name: create ANP for cloud
+      mso_schema_template_anp:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        state: present
+        anp: cloudAP
+
+    - name: create ANP for on-prem
+      mso_schema_template_anp:
+        <<: *mso_info
+        schema: hybrid application
+        template: on-prem
+        state: present
+        anp: onpremAP
+
+
+    - name: Add Filter 1 exist
+      mso_schema_template_filter_entry:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        filter: Filter1
+        entry: Filter1-Entry
+        state: present
+
+    - name: Ensure Contract1 exist
+      mso_schema_template_contract_filter: &contract_present
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        contract: Contract1
+        filter: Filter1
+        filter_schema: hybrid application
+        state: present
+
+
+    - name: Add EPG to cloud ANP
+      mso_schema_template_anp_epg:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        anp: cloudAP
+        epg: web
+        vrf:
+          name: tfvrf1
+          template: hybrid
+        state: present
+
+    - name: Add EPG to cloud ANP
+      mso_schema_template_anp_epg:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        anp: cloudAP
+        epg: db
+        vrf:
+          name: tfvrf1
+          template: hybrid
+        state: present
+
+
+
+    - name: Add a selector to Azure external EPG
+      cisco.mso.mso_schema_site_external_epg_selector:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        site: '{{ Azure_site }}'
+        external_epg: internet
+        selector: internet
+        expressions:
+          - type: ip_address
+            operator: equals
+            value: 0.0.0.0/0
+        state: present
+
+
+    - name: Add a selector to AWS external EPG
+      cisco.mso.mso_schema_site_external_epg_selector:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        site: '{{ AWS_site }}'
+        external_epg: internet
+        selector: internet
+        expressions:
+          - type: ip_address
+            operator: equals
+            value: 0.0.0.0/0
+        state: present
+
+
+
+
+    # ADD external EPG
+#    - name: Add external EPG cloud
+#      cisco.mso.mso_schema_template_external_epg:
+#        <<: *mso_info
+#        schema: hybrid application
+#        template: cloud
+#        external_epg: internet
+#        type: cloud
+#        anp:
+#          name: cloudAP
+#          template: cloud
+#        vrf:
+#          name: tfvrf1
+#          template: hybrid
+#        state: present
+
+
+    # ADD Contract to EPG
+    - name: Add Contract1 to EPG web
+      cisco.mso.mso_schema_template_anp_epg_contract:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        anp: cloudAP
+        epg: web
+        contract:
+          name: Contract1
+          type: '{{ item }}'
+        state: present
+      loop:
+        - 'consumer'
+        - 'provider'
+
+    - name: Add Contract1 to EPG db
+      cisco.mso.mso_schema_template_anp_epg_contract:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        anp: cloudAP
+        epg: db
+        contract:
+          name: Contract1
+          type: '{{ item }}'
+        state: present
+      loop:
+        - 'consumer'
+        - 'provider'
+
+
+    - name: Undeploy template
+      mso_schema_template_deploy:
+        <<: *mso_info
+        schema: hybrid application
+        template: "{{ item }}"
+        state: deploy
+      ignore_errors: yes
+      loop:
+        - cloud
+        - on-prem
+        - hybrid
+
+
+    - name: Query a schema
+      cisco.mso.mso_schema:
+        <<: *mso_info
+        schema: hybrid application
+        state: query
+      register: query_one
+
+    - name: Verify query_all and query_one
+      debug:
+        msg: "test: {{query_one.current.id}}"
+
+
+    - name: mso rest
+      cisco.mso.mso_rest:
+        <<: *mso_info
+        path: mso/api/v1/schemas/{{query_one.current.id}}
+        method: patch
+        content: "{{ lookup('template', 'tenant.json.j2') }}"
+
+
+    - name: Undeploy template
+      mso_schema_template_deploy:
+        <<: *mso_info
+        schema: hybrid application
+        template: "{{ item }}"
+        state: deploy
+      ignore_errors: yes
+      loop:
+        - cloud
+        - on-prem
+        - hybrid
+
+
+
+
+    # ADD Contract to External EPG
+    - name: Add Contract1 to External EPG
+      cisco.mso.mso_schema_template_external_epg_contract:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        external_epg: internet
+        contract:
+          name: Contract1
+          type: '{{ item }}'
+        state: present
+      loop:
+        - 'consumer'
+        - 'provider'
+
+    - name: Add Selector to EPG web
+      cisco.mso.mso_schema_site_anp_epg_selector:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        anp: cloudAP
+        epg: web
+        site: '{{item}}'
+        selector: web
+        expressions:
+          - type: application
+            operator: equals
+            value: web
+        state: present
+      delegate_to: localhost
+      loop: '{{ cloud_sites }}'
+
+    - name: Add Selector to EPG db
+      cisco.mso.mso_schema_site_anp_epg_selector:
+        <<: *mso_info
+        schema: hybrid application
+        template: cloud
+        anp: cloudAP
+        epg: db
+        site: '{{item}}'
+        selector: db
+        expressions:
+          - type: application
+            operator: equals
+            value: db
+        state: present
+      delegate_to: localhost
+      loop: '{{ cloud_sites }}'
+
+
+    - name: Undeploy template
+      mso_schema_template_deploy:
+        <<: *mso_info
+        schema: hybrid application
+        template: "{{ item }}"
+        state: deploy
+      ignore_errors: yes
+      loop:
+        - cloud
+        - on-prem
+        - hybrid
