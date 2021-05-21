@@ -1,0 +1,36 @@
+[{
+  "op": "add",
+  "path": "/templates/cloud/externalEpgs/-",
+  "value":
+{
+    "name": "internet",
+    "extEpgType": "cloud",
+    "displayName": "internet",
+    "contractRelationships": [],
+    "externalEpgRef": "/schemas/{{query_one.current.id}}/templates/cloud/externalEpgs/internet",
+    "vrfRef": {
+       "schemaId": "{{query_one.current.id}}",
+       "templateName": "hybrid",
+       "vrfName": "tfvrf1"
+    },
+    "l3outRef": "",
+    "subnets": [],
+    "anpRef": {
+       "schemaId": "{{query_one.current.id}}",
+       "templateName": "cloud",
+       "anpName": "cloudAP"
+    },
+    "selectors": [
+      {
+        "name": "internet",
+        "expressions": [
+          {
+            "key": "ipAddress",
+            "operator": "equals",
+            "value": "0.0.0.0/0"
+          }
+        ]
+      }
+    ]
+}
+}]
