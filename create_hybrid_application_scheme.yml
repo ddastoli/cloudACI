@@ -349,7 +349,7 @@
         - 'provider'
 
 
-    - name: Undeploy template
+    - name: Deploy template
       mso_schema_template_deploy:
         <<: *mso_info
         schema: hybrid application
@@ -382,7 +382,7 @@
         content: "{{ lookup('template', 'tenant.json.j2') }}"
 
 
-    - name: Undeploy template
+    - name: Deploy template
       mso_schema_template_deploy:
         <<: *mso_info
         schema: hybrid application
@@ -447,7 +447,7 @@
       loop: '{{ cloud_sites }}'
 
 
-    - name: Undeploy template
+    - name: Deploy template
       mso_schema_template_deploy:
         <<: *mso_info
         schema: hybrid application
