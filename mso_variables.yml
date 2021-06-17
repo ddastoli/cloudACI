@@ -1,56 +1,65 @@
-mso_host: 'xxx'
-mso_user: 'xxx'
-mso_password: 'xxx'
-AWS_site: AWS
-Azure_site: Azure
-onprem_site: ACI-onprem
+mso_host: '10.0.99.250'
+mso_user: 'admin'
+mso_password: 'C15co123!'
+
+ansible_connection: ansible.netcommon.httpapi
+ansible_network_os: cisco.nd.nd
+
+ansible_user: your_apic_username
+ansible_ssh_pass: your_apic_password
+ansible_httpapi_validate_certs: False
+ansible_httpapi_use_ssl: True
+ansible_httpapi_use_proxy: True
+
+AWS_site: AWS_Frankfurt
+Azure_site: Azure_West_EU
+onprem_site: On_Prem_Germany
 cloud_sites:
-  - AWS
-  - Azure
+  - AWS_Frankfurt
+  - Azure_West_EU
 onprem_sites:
-  - ACI-onprem
+  - On_Prem_Germany
 all_sites:
-  - AWS
-  - Azure
-  - ACI-onprem
+  - AWS_Frankfurt
+  - Azure_West_EU
+#  - On_Prem_Germany
 
 cidr_aws: 10.0.0.0/16
-cidr_azure: 11.0.0.0/16
+cidr_azure: 172.16.0.0/16
 
 subnetsAWS:
   - cidr: 10.0.0.0/16
     subnet: 10.0.1.0/24
-    zone: eu-west-2a
+    zone: eu-central-1a
   - cidr: 10.0.0.0/16
     subnet: 10.0.2.0/24
-    zone: eu-west-2b
+    zone: eu-central-1b
   - cidr: 10.0.0.0/16
     subnet: 10.0.3.0/24
-    zone: eu-west-2a
+    zone: eu-central-1a
   - cidr: 10.0.0.0/16
     subnet: 10.0.4.0/24
-    zone: eu-west-2b
-  
+    zone: eu-central-1b
+
 subnetsAWStgw:
   - cidr: 10.0.0.0/16
     subnet: 10.0.3.0/24
-    zone: eu-west-2a
+    zone: eu-central-1a
   - cidr: 10.0.0.0/16
     subnet: 10.0.4.0/24
-    zone: eu-west-2b
+    zone: eu-central-1b
 
 
 subnetsAzure:
-  - cidr: 11.0.0.0/16
-    subnet: 11.0.1.0/24
-    zone: francecentral
-  - cidr: 11.0.0.0/16
-    subnet: 11.0.2.0/24
-    zone: francecentral
-  - cidr: 11.0.0.0/16
-    subnet: 11.0.3.0/24
-    zone: francecentral
-  - cidr: 11.0.0.0/16
-    subnet: 11.0.4.0/24
-    zone: francecentral
-
+  - cidr: 172.16.0.0/16
+    subnet: 172.16.1.0/24
+    zone: westeurope
+  - cidr: 172.16.0.0/16
+    subnet: 172.16.2.0/24
+    zone: westeurope
+  - cidr: 172.16.0.0/16
+    subnet: 172.16.3.0/24
+    zone: westeurope
+  - cidr: 172.16.0.0/16
+    subnet: 172.16.4.0/24
+    zone: westeurope
